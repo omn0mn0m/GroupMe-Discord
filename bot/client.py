@@ -1,8 +1,10 @@
 import discord
 from discord.ext import commands
+import discord
 from discord.ext.commands import Context
 
 import io
+import aiohttp
 import json
 import os
 from dotenv import load_dotenv
@@ -10,12 +12,15 @@ from dotenv import load_dotenv
 import requests
 
 from quart import Quart
+from quart import request
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-DISCORD_CHANNEL_ID = os.getenv("DISCORD_CHANNEL_ID")
+DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
+DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_CHANNEL_ID"))
 GROUPME_BOT_ID = os.getenv("GROUPME_BOT_ID")
 GROUPME_TOKEN = os.getenv("GROUPME_TOKEN")
+GROUPME_BOT_NAME = os.getenv("GROUPME_BOT_NAME")
 
 # ==================================================
 # Discord -> GroupMe
@@ -85,11 +90,49 @@ groupme_client = Quart(__name__)
 
 @groupme_client.route('/callback', methods=['POST'])
 async def callback():
-    print(request.body)
+    data = await request.get_json()
+
+    if data['name'] == GROUPME_BOT_NAME:
+        return 'BOT'
+
+    file = None
+
+    if len(data['attachments']):
+        image = False
+
+        if data['attachments'][0]['type'] == 'image' or data['attachments'][0]['type'] == 'video':
+            file = data['attachments'][0]
+        else:
+            print(data['attachments'][0]['type'])
+
+    await send_discord_message("**{}**: {}".format(data['name'], data['text']), file, None)
+
+    return 'OK'
+
+async def send_discord_message(message, file, callback):
+    discord_channel = discord_client.get_channel(DISCORD_CHANNEL_ID)
+
+    if file:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(file['url']) as response:
+                if response.status != 200:
+                    return
+
+                httpFile = io.BytesIO(await response.read())
+
+                if file['type'] == 'image':
+                    fileExtension = '.png'
+                elif file['type'] == 'video':
+                    fileExtension = '.mkv'
+
+                await discord_channel.send(message, file=discord.File(httpFile, 'groupme_file' + fileExtension))
+    else:
+        await discord_channel.send(message)
+
 
 # ==================================================
 # Main Logic
 # ==================================================
 if __name__ == '__main__':
-    discord_client.loop.create_task(groupme_client.run_task(port=8089))
+    discord_client.loop.create_task(groupme_client.run_task(host='0.0.0.0', port=8089))
     discord_client.run(DISCORD_TOKEN)
