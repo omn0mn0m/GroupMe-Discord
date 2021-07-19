@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  groupme-discord-bot:
+    container_name: groupme-discord-bot
+    build: .
+    command: python bot/client.py
+    volumes:
+      - ./bot:/app/bot
+    ports:
+      - "8089:8089"
+    env_file: .env
+
