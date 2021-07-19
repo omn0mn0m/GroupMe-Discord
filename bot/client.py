@@ -44,7 +44,7 @@ async def on_message(message):
     if str(message.channel.id) == str(DISCORD_CHANNEL_ID):
         attachments = None
         groupme_message = '{}: {}'.format(message.author.display_name, message.content)
-
+        
         if len(message.attachments):
             attachment = message.attachments[0]
             
@@ -67,8 +67,6 @@ async def on_message(message):
                 'url': parsed_response['payload']['url'],
             }]
 
-            groupme_message = '{} sent an image:'.format(message.author.display_name)
-       
         send_groupme_message(groupme_message, attachments, '/')
 
 def send_groupme_message(message, attachments, callback):
