@@ -9,5 +9,5 @@ RUN pip install -r requirements.txt
 
 COPY . /app/
 
-EXPOSE 8089/udp
-EXPOSE 8089/tcp
+EXPOSE 8088/udp
+EXPOSE 8088/tcp

@@ -132,5 +132,5 @@ async def send_discord_message(message, file, callback):
 # Main Logic
 # ==================================================
 if __name__ == '__main__':
-    discord_client.loop.create_task(groupme_client.run_task(host='0.0.0.0', port=8089))
+    discord_client.loop.create_task(groupme_client.run_task(host='0.0.0.0', port=8088))
     discord_client.run(DISCORD_TOKEN)

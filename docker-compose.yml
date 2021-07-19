@@ -8,6 +8,6 @@ services:
     volumes:
       - ./bot:/app/bot
     ports:
-      - "8089:8089"
+      - "8088:8088"
     env_file: .env
 
