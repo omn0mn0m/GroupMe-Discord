@@ -98,7 +98,7 @@ async def callback():
     if len(data['attachments']):
         image = False
 
-        if data['attachments'][0]['type'] == 'image' or data['attachments'][0]['type'] == 'video':
+        if data['attachments'][0]['type'] == 'image' or data['attachments'][0]['type'] == 'video' or data['attachments'][0]['type'] == 'file':
             file = data['attachments'][0]
         else:
             print(data['attachments'][0]['type'])
