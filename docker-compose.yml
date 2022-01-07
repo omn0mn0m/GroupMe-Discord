@@ -2,7 +2,6 @@ version: '3'
 
 services:
   groupme-discord-bot:
-    container_name: groupme-discord-bot
     build: .
     command: python bot/client.py
     volumes:
@@ -10,4 +9,13 @@ services:
     ports:
       - "8088:8088"
     env_file: .env
-
+    depends_on:
+      - db
+  db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
