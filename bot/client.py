@@ -45,6 +45,10 @@ async def on_ready():
     await discord_client.change_presence(status=discord.Status.idle, activity=activity)
 
 @discord_client.command()
+async def ping(context):
+    await context.send('Pong!')
+
+@discord_client.command()
 @commands.has_permissions(administrator=True)
 async def link(context, groupme_bot_id):
     req = requests.get(url='https://api.groupme.com/v3/bots?token={}'.format(GROUPME_TOKEN))
@@ -164,6 +168,8 @@ async def callback():
                     print(data['attachments'][0]['type'])
                     
             await send_discord_message(discord_channel_id, "**{}**: {}".format(data['name'], data['text']), file, None)
+        else:
+            print('No record found...')
 
     return 'OK'
 
