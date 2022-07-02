@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import discord
 from discord.ext.commands import Context
 
 import io
@@ -8,6 +7,7 @@ import aiohttp
 import json
 import os
 from dotenv import load_dotenv
+from typing import Optional
 
 import requests
 
@@ -54,7 +54,7 @@ async def playing(context, activity_name):
 
 @discord_client.command()
 @commands.has_permissions(administrator=True)
-async def link(context, groupme_bot_id, discord_channel_id=None):
+async def link(context, groupme_bot_id, discord_channel: Optional[discord.TextChannel]):
     req = requests.get(url='https://api.groupme.com/v3/bots?token={}'.format(GROUPME_TOKEN))
 
     groupme_bots = req.json()['response']
@@ -64,7 +64,9 @@ async def link(context, groupme_bot_id, discord_channel_id=None):
         groupme_bot_info = groupme_bot_info[0]
 
         async with discord_client.pool.acquire() as connection:
-            if discord_channel_id is None:
+            if discord_channel:
+                discord_channel_id = discord_channel.id
+            else:
                 discord_channel_id = context.channel.id
 
             await connection.execute('''
@@ -78,12 +80,12 @@ async def link(context, groupme_bot_id, discord_channel_id=None):
 
 @discord_client.command()
 @commands.has_permissions(administrator=True)
-async def unlink(context, groupme_bot_id):
+async def unlink(context, channel: discord.TextChannel):
     async with discord_client.pool.acquire() as connection:
         await connection.execute('''
         DELETE FROM groupmes
-        WHERE groupme_bot_id=$1
-        ''', groupme_bot_id)
+        WHERE discord_channel_id=$1
+        ''', channel.id)
         
         await context.send('Done!')
 
