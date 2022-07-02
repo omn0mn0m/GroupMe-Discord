@@ -40,9 +40,7 @@ async def on_ready():
     
     print('We have logged in as {0.user}'.format(discord_client))
     
-    activity = discord.Activity(type=discord.ActivityType.playing, name=f"Anki")
-    
-    await discord_client.change_presence(status=discord.Status.idle, activity=activity)
+    await playing(None, f'Anki')
 
 @discord_client.command()
 async def ping(context):
@@ -50,7 +48,13 @@ async def ping(context):
 
 @discord_client.command()
 @commands.has_permissions(administrator=True)
-async def link(context, groupme_bot_id):
+async def playing(context, activity_name):
+    activity = discord.Activity(type=discord.ActivityType.playing, name=activity_name)
+    await discord_client.change_presence(status=discord.Status.idle, activity=activity)
+
+@discord_client.command()
+@commands.has_permissions(administrator=True)
+async def link(context, groupme_bot_id, discord_channel_id=None):
     req = requests.get(url='https://api.groupme.com/v3/bots?token={}'.format(GROUPME_TOKEN))
 
     groupme_bots = req.json()['response']
@@ -60,10 +64,13 @@ async def link(context, groupme_bot_id):
         groupme_bot_info = groupme_bot_info[0]
 
         async with discord_client.pool.acquire() as connection:
+            if discord_channel_id is None:
+                discord_channel_id = context.channel.id
+
             await connection.execute('''
                 INSERT INTO groupmes(groupme_id, groupme_bot_id, groupme_bot_name, discord_channel_id)
                 VALUES($1, $2, $3, $4)
-            ''', groupme_bot_info['group_id'], groupme_bot_id, groupme_bot_info['name'], context.channel.id)
+            ''', groupme_bot_info['group_id'], groupme_bot_id, groupme_bot_info['name'], discord_channel_id)
 
         await context.send('Added bot to db: {} {} {} {} {}'.format(groupme_bot_info['group_id'], groupme_bot_id, groupme_bot_info['name'], context.guild.id, context.channel.id))
     else:
@@ -79,6 +86,15 @@ async def unlink(context, groupme_bot_id):
         ''', groupme_bot_id)
         
         await context.send('Done!')
+
+@discord_client.command()
+@commands.has_permissions(administrator=True)
+async def links(context):
+    async with discord_client.pool.acquire() as connection:
+        record = await connection.fetch('SELECT * FROM groupmes')
+        
+        if record:
+            await context.send(record)
 
 @discord_client.listen('on_message')
 async def on_message(message):
