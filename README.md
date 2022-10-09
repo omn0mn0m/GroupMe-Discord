@@ -7,3 +7,5 @@ The bot can be launched using `docker compose up`, which is likely the easiest w
 For GroupMe bot setup, you must [create a GroupMe bot](https://dev.groupme.com/tutorials/bots).
 
 For Discord bot setup, you must [create a Discord application and bot](https://discord.com/developers/applications).
+
+NOTE: GroupMe only allows a bot to exist in one group chat, so you must create a GroupMe bot per group chat you would like to bridge. However, you only ever need to create one Discord bot.
